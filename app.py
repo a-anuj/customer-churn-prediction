@@ -11,48 +11,45 @@ groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
 model = joblib.load("model.pkl")
-pipeline = joblib.load("pipeline.pkl")
+preprocessing_pipeline = joblib.load("pipeline.pkl")
 
-@app.route('/predict',methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
     try:
-        data=request.get_json()
+        data = request.get_json()
+
+        # Convert to DataFrame
         df = pd.DataFrame([data])
 
-        x = pipeline.transform(df)
+        # Apply preprocessing
+        X = preprocessing_pipeline.transform(df)
 
-        prob = model.predict_proba(x)[0][1]
+        # Predict probability
+        prob = model.predict_proba(X)[0][1]
 
+        # Convert numpy -> python float
+        prob_float = float(prob)
 
+        # ----- AI Advice (Groq) -----
         prompt = f"""
-                You are an expert customer retention specialist.
-
-                The following is a telecom customer profile:
-
-                {data}
-
-                Their predicted churn probability is: {churn_prob_float:.2f}
-
-                Explain the top 3 reasons WHY they might churn.
-                Then give 4 simple, actionable retention strategies the company should apply.
-
-                Keep the answer very concise, direct, and practical.
-                """
-        
-        response = groq.chat.completions.create(
-            model="llama-3.1-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
+        A telecom customer has a churn probability of {prob_float:.2f}.
+        Give 3 clear retention actions.
+        """
+        ai_response = groq.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": prompt}]
         )
-        advice = response.choices[0].message.content
 
+        advice_text = ai_response.choices[0].message['content']
 
         return jsonify({
-            "churn probability":float(prob),
-            "retention advice":advice
+            "churn_probability": prob_float,
+            "advice": advice_text
         })
+
     except Exception as e:
-        return jsonify({"error":Exception})
+        print("ERROR in /predict:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/')
 def home():
