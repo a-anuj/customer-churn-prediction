@@ -36,7 +36,7 @@ def predict():
         Give 3 clear retention actions.
         """
         ai_response = groq.chat.completions.create(
-            model="llama3-70b",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}]
         )
 
