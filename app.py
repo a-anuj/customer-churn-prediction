@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-groq = Groq(api_key="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")
+groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
 model = joblib.load("model.pkl")
