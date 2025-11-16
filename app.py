@@ -40,7 +40,7 @@ def predict():
             messages=[{"role": "user", "content": prompt}]
         )
 
-        advice_text = ai_response.choices[0].message['content']
+        advice_text = ai_response.choices[0].message.content
 
         return jsonify({
             "churn_probability": prob_float,
